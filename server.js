@@ -10,13 +10,19 @@ mongoose.connect(process.env.MLAB_URI || "mongodb://localhost/exercise-track");
 const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
-  username: String
+  username: String,
+  exercises: [{
+    type: Schema.Types.ObjectId,
+    ref: 'Exercise'
+  }]
 });
 
 const exerciseSchema = new Schema({
+  userId: String,
   description: String,
   duration: Number,
-  date: { type: Date, default: Date.now }
+  date: { type: Date, default: Date.now },
+
 });
 
 const User = mongoose.model("User", userSchema);
@@ -50,6 +56,7 @@ app.post("/api/exercise/new-user", (req, res) => {
   });
   res.send({ username: user.username, id: user._id });
 });
+
 app.get("/api/exercise/users", (req, res) => {
   User.find({}, (err, users) => {
     const result = [];
@@ -57,7 +64,7 @@ app.get("/api/exercise/users", (req, res) => {
     users.forEach(user => {
       const curUser = {}
       curUser.username = user.username;
-      curUser.id = user._id;
+      curUser._id = user._id;
       // console.log(curUser);
       result.push(curUser)
 
@@ -67,8 +74,31 @@ app.get("/api/exercise/users", (req, res) => {
   });
 });
 
-app.post("/api/excercise/add", (req, res) => {
-  res.send("OK");
+app.post("/api/exercise/add", async (req, res) => {
+const user = {}
+await User.findOne({_id: req.body.userId}, (err, doc)=>{
+
+    user.id = doc._id
+    user.username = doc.username
+    const exercise = new Exercise({
+      userId: req.body.userId,
+      description: req.body.description,
+      duration: req.body.duration,
+      date: req.body.date || undefined
+    });
+    exercise.save((err, doc) => {})
+  })
+  await Exercise.find({userId: user.id}, (err, doc) =>{
+    const allExercises = []
+    doc.forEach(item =>{
+      allExercises.push(item._doc)
+    })
+    user.exercises = allExercises
+    // console.log('allExercises',allExercises);
+  })
+
+  // console.log('user',user);
+  res.send({user})
 });
 
 // /api/exercise/log?{userId}[&from][&to][&limit]
