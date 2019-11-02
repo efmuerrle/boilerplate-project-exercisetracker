@@ -11,18 +11,16 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
   username: String
-})
+});
 
 const exerciseSchema = new Schema({
   description: String,
   duration: Number,
-  date: {type: Date, default: Date.now}
-})
+  date: { type: Date, default: Date.now }
+});
 
-const User = mongoose.model('User', userSchema);
-const Exercise = mongoose.model('Exercise', exerciseSchema);
-
-
+const User = mongoose.model("User", userSchema);
+const Exercise = mongoose.model("Exercise", exerciseSchema);
 
 app.use(cors());
 
@@ -44,10 +42,31 @@ app.get("/test", (req, res) => {
 app.post("/api/exercise/new-user", (req, res) => {
   const user = new User({
     username: req.body.username
-  })
+  });
   // console.log(user);
-  res.send({user: user.username, id:  user._id});
+  user.save((err, user) => {
+    if (err) return console.error(err);
+    // console.log(`${user} saved to DB`);
+  });
+  res.send({ username: user.username, id: user._id });
 });
+app.get("/api/exercise/users", (req, res) => {
+  User.find({}, (err, users) => {
+    const result = [];
+
+    users.forEach(user => {
+      const curUser = {}
+      curUser.username = user.username;
+      curUser.id = user._id;
+      // console.log(curUser);
+      result.push(curUser)
+
+    });
+
+    res.send(result);
+  });
+});
+
 app.post("/api/excercise/add", (req, res) => {
   res.send("OK");
 });
