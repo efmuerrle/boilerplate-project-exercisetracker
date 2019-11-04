@@ -77,7 +77,7 @@ app.get("/api/exercise/users", (req, res) => {
 app.post("/api/exercise/add", async (req, res) => {
 const user = {}
 await User.findOne({_id: req.body.userId}, (err, doc)=>{
-
+  if (err) return console.error(err);
     user.id = doc._id
     user.username = doc.username
     const exercise = new Exercise({
@@ -102,17 +102,40 @@ await User.findOne({_id: req.body.userId}, (err, doc)=>{
 });
 
 // /api/exercise/log?{userId}[&from][&to][&limit]
-app.get("/api/exercise/log", (req, res) => {
+app.get("/api/exercise/log", async (req, res) => {
   const userId = req.query.userId || null;
-  console.log("userId", userId);
+  // console.log("userId", userId);
   // Throw error if no user ID is provided
   if (!userId) {
-    throw new Error("Please provide the ID");
+    throw new Error("Please provide the UserID");
   }
   // const params = req.body.params
   const query = req.query;
-  console.log("query", query);
-  res.send("OK");
+  // console.log("query", query);
+
+
+  const user = {}
+
+  await User.findOne({_id: userId}, (err, doc)=>{
+    // console.log(doc);
+    if (err) return console.error(err);
+      user.id = userId
+      user.username = doc.username
+    })
+    await Exercise.find({userId: user.id}, (err, doc) =>{
+      const allExercises = []
+      doc.forEach(item =>{
+        allExercises.push(item._doc)
+      })
+      user.log = allExercises
+      user.count = allExercises.length
+      // console.log('allExercises',allExercises);
+    })
+
+    // console.log('user',user);
+    res.send({user})
+
+  // Return user object with {log: [exercises], count: Int}
 });
 
 // Not found middleware
