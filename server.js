@@ -11,18 +11,19 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema({
   username: String,
-  exercises: [{
-    type: Schema.Types.ObjectId,
-    ref: 'Exercise'
-  }]
+  exercises: [
+    {
+      type: Schema.Types.ObjectId,
+      ref: "Exercise"
+    }
+  ]
 });
 
 const exerciseSchema = new Schema({
   userId: String,
   description: String,
   duration: Number,
-  date: { type: Date, default: Date.now },
-
+  date: { type: Date, default: Date.now }
 });
 
 const User = mongoose.model("User", userSchema);
@@ -62,12 +63,11 @@ app.get("/api/exercise/users", (req, res) => {
     const result = [];
 
     users.forEach(user => {
-      const curUser = {}
+      const curUser = {};
       curUser.username = user.username;
       curUser._id = user._id;
       // console.log(curUser);
-      result.push(curUser)
-
+      result.push(curUser);
     });
 
     res.send(result);
@@ -75,30 +75,30 @@ app.get("/api/exercise/users", (req, res) => {
 });
 
 app.post("/api/exercise/add", async (req, res) => {
-const user = {}
-await User.findOne({_id: req.body.userId}, (err, doc)=>{
-  if (err) return console.error(err);
-    user.id = doc._id
-    user.username = doc.username
+  const user = {};
+  await User.findOne({ _id: req.body.userId }, (err, doc) => {
+    if (err) return console.error(err);
+    user.id = doc._id;
+    user.username = doc.username;
     const exercise = new Exercise({
       userId: req.body.userId,
       description: req.body.description,
       duration: req.body.duration,
       date: req.body.date || undefined
     });
-    exercise.save((err, doc) => {})
-  })
-  await Exercise.find({userId: user.id}, (err, doc) =>{
-    const allExercises = []
-    doc.forEach(item =>{
-      allExercises.push(item._doc)
-    })
-    user.exercises = allExercises
+    exercise.save((err, doc) => {});
+  });
+  await Exercise.find({ userId: user.id }, (err, doc) => {
+    const allExercises = [];
+    doc.forEach(item => {
+      allExercises.push(item._doc);
+    });
+    user.exercises = allExercises;
     // console.log('allExercises',allExercises);
-  })
+  });
 
   // console.log('user',user);
-  res.send({user})
+  res.send({ user });
 });
 
 // /api/exercise/log?{userId}[&from][&to][&limit]
@@ -110,30 +110,41 @@ app.get("/api/exercise/log", async (req, res) => {
     throw new Error("Please provide the UserID");
   }
   // const params = req.body.params
-  const query = req.query;
   // console.log("query", query);
 
+  const fromDate = req.query.from || 1970 - 01 - 01;
+  const toDate = req.query.to;
+  const limit = parseInt(req.query.limit);
 
-  const user = {}
+  // console.log('fromDate', fromDate,'toDate', toDate);
+  const range = { from: fromDate, to: toDate };
 
-  await User.findOne({_id: userId}, (err, doc)=>{
+  // console.log("range", range);
+
+  const user = {};
+
+  await User.findOne({ _id: userId }, (err, doc) => {
     // console.log(doc);
     if (err) return console.error(err);
-      user.id = userId
-      user.username = doc.username
-    })
-    await Exercise.find({userId: user.id}, (err, doc) =>{
-      const allExercises = []
-      doc.forEach(item =>{
-        allExercises.push(item._doc)
-      })
-      user.log = allExercises
-      user.count = allExercises.length
+    user.id = userId;
+    user.username = doc.username;
+  });
+  await Exercise.find(
+    { userId: user.id, date: { $gte: range.from, $lte: range.to } },
+    (err, doc) => {
+      if (err) return console.error(err);
+      const allExercises = [];
+      doc.forEach(item => {
+        allExercises.push(item._doc);
+      });
+      user.log = allExercises;
+      user.count = allExercises.length;
       // console.log('allExercises',allExercises);
-    })
+    }
+  ).limit(limit);
 
-    // console.log('user',user);
-    res.send({user})
+  // console.log('user',user);
+  res.send({ user });
 
   // Return user object with {log: [exercises], count: Int}
 });
