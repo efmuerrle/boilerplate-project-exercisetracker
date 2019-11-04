@@ -112,7 +112,7 @@ app.get("/api/exercise/log", async (req, res) => {
   // const params = req.body.params
   // console.log("query", query);
 
-  const fromDate = req.query.from || 1970 - 01 - 01;
+  const fromDate = req.query.from || "1970-01-01";
   const toDate = req.query.to;
   const limit = parseInt(req.query.limit);
 
