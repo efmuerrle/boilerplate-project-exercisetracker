@@ -122,8 +122,8 @@ app.get('/api/exercise/log', async function(req, res) {
   const getUser = async () => {
     const userObj = {
       user: {
-        id: '',
-        name: '',
+        _id: '',
+        username: '',
         log: ''
       }
     };
@@ -143,8 +143,8 @@ app.get('/api/exercise/log', async function(req, res) {
     const user = await User.findOne({ _id: userId })
       .then(user => {
         // console.log('user :', user);
-        userObj.user.id = user._id;
-        userObj.user.name = user.username;
+        userObj.user._id = user._id;
+        userObj.user.username = user.username;
         return user;
       })
       .catch(err => {
