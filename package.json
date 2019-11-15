@@ -4,7 +4,7 @@
   "description": "A REST API project, part of Free Code Camp's curriculum",
   "main": "server.js",
   "scripts": {
-    "mon": "nodemon server.js",
+    "mon": "PORT=5555 nodemon server.js",
     "start": "node server.js"
   },
   "dependencies": {
@@ -18,7 +18,7 @@
     "shortid": "^2.2.6"
   },
   "engines": {
-    "node": "^12.x.x"
+    "node": ">=8.0.0"
   },
   "repository": {
     "url": "https://gomix.com/#!/project/welcome-project"
